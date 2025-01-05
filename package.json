@@ -1,8 +1,8 @@
 {
-  "name": "mmm-template",
+  "name": "mmm-hue-motion-screensaver",
   "version": "1.0.0",
   "description": "[Module description]",
-  "main": "MMM-Template.js",
+  "main": "MMM-Hue-Motion-Screensaver.js",
   "scripts": {
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
@@ -10,17 +10,17 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+[GitHub url].git"
+    "url": "git+https://github.com/Zaro-kar/MMM-Hue-Motion-Screensaver.git"
   },
   "keywords": [
     "template"
   ],
-  "author": "[Author]",
+  "author": "Simon Wimmer",
   "license": "MIT",
   "bugs": {
-    "url": "[GitHub url]/issues"
+    "url": "https://github.com/Zaro-kar/MMM-Hue-Motion-Screensaver/issues"
   },
-  "homepage": "[GitHub url]#readme",
+  "homepage": "https://github.com/Zaro-kar/MMM-Hue-Motion-Screensaver#readme",
   "devDependencies": {
     "@eslint/js": "^9.10.0",
     "@stylistic/eslint-plugin": "^2.7.2",

@@ -1,4 +1,4 @@
-Module.register("MMM-Template", {
+Module.register("MMM-Hue-Motion-Screensaver", {
 
   defaults: {
     exampleContent: ""
@@ -8,7 +8,7 @@ Module.register("MMM-Template", {
    * Apply the default styles.
    */
   getStyles() {
-    return ["template.css"]
+    return ["Hue-Motion-Screensaver.css"]
   },
 
   /**

@@ -22,6 +22,10 @@ Module.register("MMM-Hue-Motion-Screensaver", {
         this.scheduleUpdate();
     },
 
+    getStyles: function () {
+        return ["Hue-Motion-Screensaver.css"];
+    },
+
     scheduleUpdate: function () {
         setInterval(() => {
             this.checkMotion();
@@ -104,6 +108,8 @@ Module.register("MMM-Hue-Motion-Screensaver", {
 
     getDom: function () {
         const wrapper = document.createElement("div");
+        wrapper.className = "screen-saver-wrapper"; // CSS-Klasse hinzufügen
+    
         if (this.state === 1) {
             wrapper.innerHTML = "Motion detected";
         } else if (this.state === 2 && this.nextScreenOffTime) {

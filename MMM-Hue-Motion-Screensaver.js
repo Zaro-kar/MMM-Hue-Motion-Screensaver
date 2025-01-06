@@ -18,7 +18,7 @@ Module.register("MMM-Hue-Motion-Screensaver", {
       this.log("Starting module: " + this.name);
       this.lastAction = new Date();
       this.state = -1;
-      this.nextScreenOffTime = null; // Zeitpunkt, wann der Bildschirm ausgeschaltet wird
+      this.remainingTime = null; // Zeit bis zum Ausschalten in Sekunden
       this.scheduleUpdate();
   },
 
@@ -26,6 +26,10 @@ Module.register("MMM-Hue-Motion-Screensaver", {
       setInterval(() => {
           this.checkMotion();
       }, this.config.pollInterval);
+
+      setInterval(() => {
+          this.updateRemainingTime();
+      }, 1000); // Update jede Sekunde
   },
 
   checkMotion: function () {
@@ -56,9 +60,7 @@ Module.register("MMM-Hue-Motion-Screensaver", {
 
       if (motion) {
           this.lastAction = now;
-          this.nextScreenOffTime = new Date(
-              now.getTime() + this.config.coolDown * 1000
-          );
+          this.remainingTime = this.config.coolDown;
           if (this.state !== 1) {
               this.state = 1;
               this.toggleScreen(true);
@@ -72,7 +74,7 @@ Module.register("MMM-Hue-Motion-Screensaver", {
           } else {
               this.state = 0;
               this.toggleScreen(false);
-              this.nextScreenOffTime = null;
+              this.remainingTime = null;
           }
       }
 
@@ -87,8 +89,8 @@ Module.register("MMM-Hue-Motion-Screensaver", {
       const now = new Date();
       const currentTime = now.getHours() * 60 + now.getMinutes();
 
-      const [startHour, startMinute] = startTime.split(":").map(Number);
-      const [endHour, endMinute] = endTime.split(":").map(Number);
+      const [startHour, startMinute] = startTime.split(":".map(Number));
+      const [endHour, endMinute] = endTime.split(":".map(Number));
 
       const start = startHour * 60 + startMinute;
       const end = endHour * 60 + endMinute;
@@ -100,11 +102,19 @@ Module.register("MMM-Hue-Motion-Screensaver", {
       }
   },
 
+  updateRemainingTime: function () {
+      if (this.remainingTime !== null && this.remainingTime > 0) {
+          this.remainingTime -= 1;
+      } else {
+          this.remainingTime = null;
+      }
+      this.updateDom();
+  },
+
   getDom: function () {
       const wrapper = document.createElement("div");
-      if (this.nextScreenOffTime) {
-          const timeString = this.nextScreenOffTime.toLocaleTimeString();
-          wrapper.innerHTML = `Next screen off: ${timeString}`;
+      if (this.remainingTime !== null) {
+          wrapper.innerHTML = `Screen off in: ${this.remainingTime} seconds`;
       } else {
           wrapper.innerHTML = "Screen is active";
       }

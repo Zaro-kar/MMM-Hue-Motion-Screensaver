@@ -3,6 +3,14 @@
  * Description: Controls the MagicMirror screen based on motion detected via a Hue Motion Sensor.
  */
 
+const enTranslations = require('./translations/en.json');
+const deTranslations = require('./translations/de.json');
+
+const translations = {
+    en: enTranslations,
+    de: deTranslations
+};
+
 Module.register("MMM-Hue-Motion-Screensaver", {
     defaults: {
         hueHost: "", // Hostname oder IP-Adresse der Hue Bridge
@@ -18,7 +26,7 @@ Module.register("MMM-Hue-Motion-Screensaver", {
         this.log("Starting module: " + this.name);
         this.lastAction = new Date();
         this.state = -1;
-        this.nextScreenOffTime = null; // Zeitpunkt, wann der Bildschirm ausgeschaltet wird
+        this.nextScreenOffTime = null; // Zeitpunkt, wann der Bildsc‚hirm ausgeschaltet wird
         this.scheduleUpdate();
     },
 
@@ -102,14 +110,19 @@ Module.register("MMM-Hue-Motion-Screensaver", {
 
     getDom: function () {
         const wrapper = document.createElement("div");
-        if (this.nextScreenOffTime) {
+        const language = this.config.language;
+        const t = translations[language] || translations.en; // Standardmäßig Englisch, wenn Sprache nicht 'de' oder 'en' ist
+
+        if (this.state === 1) {
+            wrapper.innerHTML = t.motionDetected;
+        } else if (this.nextScreenOffTime) {
             const now = new Date();
             const timeRemaining = Math.max(0, Math.floor((this.nextScreenOffTime - now) / 1000));
-            const minutes = Math.floor(timeRemaining / 60);
-            const seconds = timeRemaining % 60;
-            wrapper.innerHTML = `Screen off in: ${minutes}:${seconds}`;
+            const minutes = String(Math.floor(timeRemaining / 60)).padStart(2, '0');
+            const seconds = String(timeRemaining % 60).padStart(2, '0');
+            wrapper.innerHTML = `${t.screenOffIn}: ${minutes}${t.minutes} ${seconds}${t.seconds}`;
         } else {
-            wrapper.innerHTML = "Screen is active";
+            wrapper.innerHTML = t.screenActive;
         }
         return wrapper;
     },

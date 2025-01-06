@@ -110,7 +110,7 @@ Module.register("MMM-Hue-Motion-Screensaver", {
         const wrapper = document.createElement("div");
         wrapper.className = "MMM-Hue-Motion-Screensaver"; // CSS-Klasse hinzufügen
 
-        if (this.state === 0 && this.isWithinTimeRange(this.config.startTime, this.config.endTime)) {
+        if (this.isWithinTimeRange(this.config.startTime, this.config.endTime)) {
             wrapper.innerHTML = `On between ${this.config.startTime} - ${this.config.endTime}`;
         } else {
             if (this.state === 1) {

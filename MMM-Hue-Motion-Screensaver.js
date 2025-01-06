@@ -109,19 +109,21 @@ Module.register("MMM-Hue-Motion-Screensaver", {
     getDom: function () {
         const wrapper = document.createElement("div");
         wrapper.className = "MMM-Hue-Motion-Screensaver"; // CSS-Klasse hinzufügen
-    
-        if (this.state === 1) {
-            wrapper.innerHTML = "Motion detected";
-        } else if (this.state === 2 && this.nextScreenOffTime) {
-            const now = new Date();
-            const timeRemaining = Math.max(0, Math.floor((this.nextScreenOffTime - now) / 1000));
-            const minutes = String(Math.floor(timeRemaining / 60)).padStart(2, '0');
-            const seconds = String(timeRemaining % 60).padStart(2, '0');
-            wrapper.innerHTML = `Screen off in: ${minutes}:${seconds}`;
-        } else if (this.state === 0 && this.isWithinTimeRange(this.config.startTime, this.config.endTime)) {
+
+        if (this.state === 0 && this.isWithinTimeRange(this.config.startTime, this.config.endTime)) {
             wrapper.innerHTML = `On between ${this.config.startTime} - ${this.config.endTime}`;
         } else {
-            wrapper.innerHTML = "Screen is active";
+            if (this.state === 1) {
+                wrapper.innerHTML = "Motion detected";
+            } else if (this.state === 2 && this.nextScreenOffTime) {
+                const now = new Date();
+                const timeRemaining = Math.max(0, Math.floor((this.nextScreenOffTime - now) / 1000));
+                const minutes = String(Math.floor(timeRemaining / 60)).padStart(2, '0');
+                const seconds = String(timeRemaining % 60).padStart(2, '0');
+                wrapper.innerHTML = `Screen off in: ${minutes}:${seconds}`;
+            } else {
+                wrapper.innerHTML = "Screen is active";
+            }
         }
         return wrapper;
     },

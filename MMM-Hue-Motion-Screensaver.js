@@ -3,14 +3,6 @@
  * Description: Controls the MagicMirror screen based on motion detected via a Hue Motion Sensor.
  */
 
-const enTranslations = require('./translations/en.json');
-const deTranslations = require('./translations/de.json');
-
-const translations = {
-    en: enTranslations,
-    de: deTranslations
-};
-
 Module.register("MMM-Hue-Motion-Screensaver", {
     defaults: {
         hueHost: "", // Hostname oder IP-Adresse der Hue Bridge
@@ -19,8 +11,7 @@ Module.register("MMM-Hue-Motion-Screensaver", {
         coolDown: 5 * 60, // Cooldown in Sekunden
         startTime: "06:00",
         endTime: "00:00",
-        pollInterval: 2000, // Intervall zur Abfrage des Sensors in ms
-        language: "en" // Standardmäßig Englisch
+        pollInterval: 2000 // Intervall zur Abfrage des Sensors in ms
     },
 
     start: function () {
@@ -111,19 +102,16 @@ Module.register("MMM-Hue-Motion-Screensaver", {
 
     getDom: function () {
         const wrapper = document.createElement("div");
-        const language = this.config.language || "en"; // Standardmäßig Englisch
-        const t = translations[language] || translations.en; // Standardmäßig Englisch, wenn Sprache nicht 'de' oder 'en' ist
-
         if (this.state === 1) {
-            wrapper.innerHTML = t.motionDetected;
+            wrapper.innerHTML = "Motion detected";
         } else if (this.nextScreenOffTime) {
             const now = new Date();
             const timeRemaining = Math.max(0, Math.floor((this.nextScreenOffTime - now) / 1000));
             const minutes = String(Math.floor(timeRemaining / 60)).padStart(2, '0');
             const seconds = String(timeRemaining % 60).padStart(2, '0');
-            wrapper.innerHTML = `${t.screenOffIn}: ${minutes}:${seconds}`;
+            wrapper.innerHTML = `Screen off in: ${minutes}:${seconds}`;
         } else {
-            wrapper.innerHTML = t.screenActive;
+            wrapper.innerHTML = "Screen is active";
         }
         return wrapper;
     },

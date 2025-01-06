@@ -102,9 +102,7 @@ Module.register("MMM-Hue-Motion-Screensaver", {
 
     getDom: function () {
         const wrapper = document.createElement("div");
-        if (this.state === 1) {
-            wrapper.innerHTML = "Motion detected";
-        } else if (this.nextScreenOffTime) {
+        if (this.nextScreenOffTime) {
             const now = new Date();
             const timeRemaining = Math.max(0, Math.floor((this.nextScreenOffTime - now) / 1000));
             const minutes = String(Math.floor(timeRemaining / 60)).padStart(2, '0');

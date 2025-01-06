@@ -74,6 +74,8 @@ Module.register("MMM-Hue-Motion-Screensaver", {
                 this.toggleScreen(false);
                 this.nextScreenOffTime = null;
             }
+        } else {
+            this.state = 2; // Zustand für Timer-Anzeige
         }
 
         this.updateDom(); // Aktualisiere die Anzeige
@@ -104,7 +106,7 @@ Module.register("MMM-Hue-Motion-Screensaver", {
         const wrapper = document.createElement("div");
         if (this.state === 1) {
             wrapper.innerHTML = "Motion detected";
-        } else if (this.nextScreenOffTime) {
+        } else if (this.state === 2 && this.nextScreenOffTime) {
             const now = new Date();
             const timeRemaining = Math.max(0, Math.floor((this.nextScreenOffTime - now) / 1000));
             const minutes = String(Math.floor(timeRemaining / 60)).padStart(2, '0');

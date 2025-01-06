@@ -15,6 +15,7 @@ Module.register("MMM-Hue-Motion-Screensaver", {
   },
 
   start: function () {
+      this.log("Starting module: " + this.name);
       this.lastAction = new Date();
       this.state = -1;
       this.nextScreenOffTime = null; // Zeitpunkt, wann der Bildschirm ausgeschaltet wird
@@ -67,7 +68,7 @@ Module.register("MMM-Hue-Motion-Screensaver", {
           (now - this.lastAction) > this.config.coolDown * 1000
       ) {
           if (isWithinTimeRange) {
-              Log.info("SCREEN OFF command ignored due to time range");
+              this.log("SCREEN OFF command ignored due to time range");
           } else {
               this.state = 0;
               this.toggleScreen(false);
@@ -86,8 +87,8 @@ Module.register("MMM-Hue-Motion-Screensaver", {
       const now = new Date();
       const currentTime = now.getHours() * 60 + now.getMinutes();
 
-      const [startHour, startMinute] = startTime.split(":".map(Number));
-      const [endHour, endMinute] = endTime.split(":".map(Number));
+      const [startHour, startMinute] = startTime.split(":").map(Number);
+      const [endHour, endMinute] = endTime.split(":").map(Number);
 
       const start = startHour * 60 + startMinute;
       const end = endHour * 60 + endMinute;
@@ -108,5 +109,13 @@ Module.register("MMM-Hue-Motion-Screensaver", {
           wrapper.innerHTML = "Screen is active";
       }
       return wrapper;
+  },
+
+  log: function (message) {
+      Log.info(`[${this.name}] ${message}`);
+  },
+
+  logError: function (message, error) {
+      Log.error(`[${this.name}] ${message}`, error);
   }
 });

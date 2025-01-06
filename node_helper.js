@@ -1,4 +1,5 @@
 const NodeHelper = require("node_helper");
+const Log = require("logger");
 const axios = require("axios");
 const fs = require("fs");
 
@@ -49,10 +50,10 @@ module.exports = NodeHelper.create({
     },
 
     log: function (message) {
-        console.log(`[${this.name}] ${message}`);
+        Log.info(`[${this.name}] ${message}`);
     },
 
     logError: function (message, error) {
-        console.error(`[${this.name}] ${message}`, error);
+        Log.error(`[${this.name}] ${message}`, error);
     }
 });

@@ -1,5 +1,5 @@
 const NodeHelper = require("node_helper");
-const request = require("request");
+const axios = require("axios");
 const fs = require("fs");
 
 module.exports = NodeHelper.create({
@@ -15,31 +15,23 @@ module.exports = NodeHelper.create({
         }
     },
 
-    checkMotion: function ({ pirUrl, headers, certPath }) {
-        const options = {
-            url: pirUrl,
-            headers: headers,
-            cert: fs.readFileSync(certPath),
-            rejectUnauthorized: false
-        };
+    checkMotion: async function ({ pirUrl, headers, certPath }) {
+        try {
+            const response = await axios.get(pirUrl, {
+                headers: headers,
+                httpsAgent: new (require("https").Agent)({
+                    ca: fs.readFileSync(certPath),
+                    rejectUnauthorized: false
+                })
+            });
 
-        request.get(options, (error, response, body) => {
-            if (error) {
-                this.logError("Error fetching motion state:", error);
-                this.sendSocketNotification("MOTION_RESULT", true); // Default: motion detected
-                return;
-            }
-
-            try {
-                const data = JSON.parse(body);
-                const motion =
-                    data?.data?.[0]?.motion?.motion_report?.motion || false;
-                this.sendSocketNotification("MOTION_RESULT", motion);
-            } catch (e) {
-                this.logError("Error parsing motion response:", e);
-                this.sendSocketNotification("MOTION_RESULT", true); // Default: motion detected
-            }
-        });
+            const data = response.data;
+            const motion = data?.data?.[0]?.motion?.motion_report?.motion || false;
+            this.sendSocketNotification("MOTION_RESULT", motion);
+        } catch (error) {
+            this.logError("Error fetching motion state:", error);
+            this.sendSocketNotification("MOTION_RESULT", true); // Default: motion detected
+        }
     },
 
     toggleScreen: function (on) {

@@ -108,7 +108,7 @@ Module.register("MMM-Hue-Motion-Screensaver", {
 
     getDom: function () {
         const wrapper = document.createElement("div");
-        wrapper.className = "screen-saver-wrapper"; // CSS-Klasse hinzufügen
+        wrapper.className = "MMM-Hue-Motion-Screensaver"; // CSS-Klasse hinzufügen
     
         if (this.state === 1) {
             wrapper.innerHTML = "Motion detected";

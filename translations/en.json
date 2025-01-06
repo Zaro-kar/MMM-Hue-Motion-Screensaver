@@ -1,7 +1,5 @@
 {
     "motionDetected": "Motion detected",
     "screenOffIn": "Screen off in",
-    "screenActive": "Screen is active",
-    "minutes": "m",
-    "seconds": "s"
+    "screenActive": "Screen is active"
 }

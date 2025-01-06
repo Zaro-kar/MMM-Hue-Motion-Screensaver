@@ -19,14 +19,15 @@ Module.register("MMM-Hue-Motion-Screensaver", {
         coolDown: 5 * 60, // Cooldown in Sekunden
         startTime: "06:00",
         endTime: "00:00",
-        pollInterval: 2000 // Intervall zur Abfrage des Sensors in ms
+        pollInterval: 2000, // Intervall zur Abfrage des Sensors in ms
+        language: "en" // Standardmäßig Englisch
     },
 
     start: function () {
         this.log("Starting module: " + this.name);
         this.lastAction = new Date();
         this.state = -1;
-        this.nextScreenOffTime = null; // Zeitpunkt, wann der Bildsc‚hirm ausgeschaltet wird
+        this.nextScreenOffTime = null; // Zeitpunkt, wann der Bildschirm ausgeschaltet wird
         this.scheduleUpdate();
     },
 
@@ -110,7 +111,7 @@ Module.register("MMM-Hue-Motion-Screensaver", {
 
     getDom: function () {
         const wrapper = document.createElement("div");
-        const language = this.config.language;
+        const language = this.config.language || "en"; // Standardmäßig Englisch
         const t = translations[language] || translations.en; // Standardmäßig Englisch, wenn Sprache nicht 'de' oder 'en' ist
 
         if (this.state === 1) {
@@ -120,7 +121,7 @@ Module.register("MMM-Hue-Motion-Screensaver", {
             const timeRemaining = Math.max(0, Math.floor((this.nextScreenOffTime - now) / 1000));
             const minutes = String(Math.floor(timeRemaining / 60)).padStart(2, '0');
             const seconds = String(timeRemaining % 60).padStart(2, '0');
-            wrapper.innerHTML = `${t.screenOffIn}: ${minutes}${t.minutes} ${seconds}${t.seconds}`;
+            wrapper.innerHTML = `${t.screenOffIn}: ${minutes}:${seconds}`;
         } else {
             wrapper.innerHTML = t.screenActive;
         }

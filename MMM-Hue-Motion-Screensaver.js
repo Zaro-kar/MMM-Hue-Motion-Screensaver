@@ -73,7 +73,6 @@ Module.register("MMM-Hue-Motion-Screensaver", {
         ) {
             if (isWithinTimeRange) {
                 this.log("SCREEN OFF command ignored due to time range");
-                this.state = 3; // Neuer Zustand für Zeitbereich
             } else {
                 this.state = 0;
                 this.toggleScreen(false);
@@ -119,8 +118,8 @@ Module.register("MMM-Hue-Motion-Screensaver", {
             const minutes = String(Math.floor(timeRemaining / 60)).padStart(2, '0');
             const seconds = String(timeRemaining % 60).padStart(2, '0');
             wrapper.innerHTML = `Screen off in: ${minutes}:${seconds}`;
-        } else if (this.state === 3) {
-            wrapper.innerHTML = `Screen is on between ${this.config.startTime} and ${this.config.endTime}`;
+        } else if (this.state === 0 && this.isWithinTimeRange(this.config.startTime, this.config.endTime)) {
+            wrapper.innerHTML = `On between ${this.config.startTime} - ${this.config.endTime}`;
         } else {
             wrapper.innerHTML = "Screen is active";
         }

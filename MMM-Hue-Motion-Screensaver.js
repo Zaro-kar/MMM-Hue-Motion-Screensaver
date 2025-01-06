@@ -17,6 +17,7 @@ Module.register("MMM-Hue-Motion-Screensaver", {
   start: function () {
       this.lastAction = new Date();
       this.state = -1;
+      this.nextScreenOffTime = null; // Zeitpunkt, wann der Bildschirm ausgeschaltet wird
       this.scheduleUpdate();
   },
 
@@ -54,21 +55,27 @@ Module.register("MMM-Hue-Motion-Screensaver", {
 
       if (motion) {
           this.lastAction = now;
+          this.nextScreenOffTime = new Date(
+              now.getTime() + this.config.coolDown * 1000
+          );
           if (this.state !== 1) {
               this.state = 1;
               this.toggleScreen(true);
           }
       } else if (
           !motion &&
-          (now - this.lastAction) / 1000 > this.config.coolDown
+          (now - this.lastAction) > this.config.coolDown * 1000
       ) {
           if (isWithinTimeRange) {
               Log.info("SCREEN OFF command ignored due to time range");
           } else {
               this.state = 0;
               this.toggleScreen(false);
+              this.nextScreenOffTime = null;
           }
       }
+
+      this.updateDom(); // Aktualisiere die Anzeige
   },
 
   toggleScreen: function (on) {
@@ -90,5 +97,16 @@ Module.register("MMM-Hue-Motion-Screensaver", {
       } else {
           return currentTime >= start || currentTime <= end;
       }
+  },
+
+  getDom: function () {
+      const wrapper = document.createElement("div");
+      if (this.nextScreenOffTime) {
+          const timeString = this.nextScreenOffTime.toLocaleTimeString();
+          wrapper.innerHTML = `Next screen off: ${timeString}`;
+      } else {
+          wrapper.innerHTML = "Screen is active";
+      }
+      return wrapper;
   }
 });

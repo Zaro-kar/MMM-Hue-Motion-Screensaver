@@ -1,64 +1,94 @@
+/**
+ * Module: MMM-Hue-Motion-Screensaver
+ * Description: Controls the MagicMirror screen based on motion detected via a Hue Motion Sensor.
+ */
+
 Module.register("MMM-Hue-Motion-Screensaver", {
-
   defaults: {
-    exampleContent: ""
+      hueHost: "", // Hostname oder IP-Adresse der Hue Bridge
+      sensorId: "", // Sensor-ID
+      apiKey: "", // API-Schlüssel
+      coolDown: 5 * 60, // Cooldown in Sekunden
+      startTime: "06:00",
+      endTime: "00:00",
+      pollInterval: 2000 // Intervall zur Abfrage des Sensors in ms
   },
 
-  /**
-   * Apply the default styles.
-   */
-  getStyles() {
-    return ["Hue-Motion-Screensaver.css"]
+  start: function () {
+      this.lastAction = new Date();
+      this.state = -1;
+      this.scheduleUpdate();
   },
 
-  /**
-   * Pseudo-constructor for our module. Initialize stuff here.
-   */
-  start() {
-    this.templateContent = this.config.exampleContent
-
-    // set timeout for next random text
-    setInterval(() => this.addRandomText(), 3000)
+  scheduleUpdate: function () {
+      setInterval(() => {
+          this.checkMotion();
+      }, this.config.pollInterval);
   },
 
-  /**
-   * Handle notifications received by the node helper.
-   * So we can communicate between the node helper and the module.
-   *
-   * @param {string} notification - The notification identifier.
-   * @param {any} payload - The payload data`returned by the node helper.
-   */
+  checkMotion: function () {
+      const pirUrl = `https://${this.config.hueHost}/clip/v2/resource/motion/${this.config.sensorId}`;
+      const headers = {
+          "hue-application-key": this.config.apiKey
+      };
+
+      this.sendSocketNotification("CHECK_MOTION", {
+          pirUrl,
+          headers,
+          certPath: "/home/zaro/Pir/hue_bridge_cert.pem"
+      });
+  },
+
   socketNotificationReceived: function (notification, payload) {
-    if (notification === "EXAMPLE_NOTIFICATION") {
-      this.templateContent = `${this.config.exampleContent} ${payload.text}`
-      this.updateDom()
-    }
+      if (notification === "MOTION_RESULT") {
+          this.handleMotionResult(payload);
+      }
   },
 
-  /**
-   * Render the page we're on.
-   */
-  getDom() {
-    const wrapper = document.createElement("div")
-    wrapper.innerHTML = `<b>Title</b><br />${this.templateContent}`
+  handleMotionResult: function (motion) {
+      const now = new Date();
+      const isWithinTimeRange = this.isWithinTimeRange(
+          this.config.startTime,
+          this.config.endTime
+      );
 
-    return wrapper
+      if (motion) {
+          this.lastAction = now;
+          if (this.state !== 1) {
+              this.state = 1;
+              this.toggleScreen(true);
+          }
+      } else if (
+          !motion &&
+          (now - this.lastAction) / 1000 > this.config.coolDown
+      ) {
+          if (isWithinTimeRange) {
+              Log.info("SCREEN OFF command ignored due to time range");
+          } else {
+              this.state = 0;
+              this.toggleScreen(false);
+          }
+      }
   },
 
-  addRandomText() {
-    this.sendSocketNotification("GET_RANDOM_TEXT", { amountCharacters: 15 })
+  toggleScreen: function (on) {
+      this.sendSocketNotification("TOGGLE_SCREEN", on);
   },
 
-  /**
-   * This is the place to receive notifications from other modules or the system.
-   *
-   * @param {string} notification The notification ID, it is preferred that it prefixes your module name
-   * @param {number} payload the payload type.
-   */
-  notificationReceived(notification, payload) {
-    if (notification === "TEMPLATE_RANDOM_TEXT") {
-      this.templateContent = `${this.config.exampleContent} ${payload}`
-      this.updateDom()
-    }
+  isWithinTimeRange: function (startTime, endTime) {
+      const now = new Date();
+      const currentTime = now.getHours() * 60 + now.getMinutes();
+
+      const [startHour, startMinute] = startTime.split(":".map(Number));
+      const [endHour, endMinute] = endTime.split(":".map(Number));
+
+      const start = startHour * 60 + startMinute;
+      const end = endHour * 60 + endMinute;
+
+      if (start <= end) {
+          return currentTime >= start && currentTime <= end;
+      } else {
+          return currentTime >= start || currentTime <= end;
+      }
   }
-})
+});

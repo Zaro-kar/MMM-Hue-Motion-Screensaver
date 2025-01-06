@@ -1,7 +1,7 @@
 {
   "name": "mmm-hue-motion-screensaver",
-  "version": "1.0.0",
-  "description": "[Module description]",
+  "version": "1.1.0",
+  "description": "MagicMirror module to control the screen based on motion detected by a Hue motion sensor.",
   "main": "MMM-Hue-Motion-Screensaver.js",
   "scripts": {
     "lint": "eslint .",
@@ -13,7 +13,10 @@
     "url": "git+https://github.com/Zaro-kar/MMM-Hue-Motion-Screensaver.git"
   },
   "keywords": [
-    "template"
+    "MagicMirror",
+    "Hue",
+    "Motion Sensor",
+    "Screensaver"
   ],
   "author": "Simon Wimmer",
   "license": "MIT",
@@ -21,6 +24,9 @@
     "url": "https://github.com/Zaro-kar/MMM-Hue-Motion-Screensaver/issues"
   },
   "homepage": "https://github.com/Zaro-kar/MMM-Hue-Motion-Screensaver#readme",
+  "dependencies": {
+    "request": "^2.88.2"
+  },
   "devDependencies": {
     "@eslint/js": "^9.10.0",
     "@stylistic/eslint-plugin": "^2.7.2",

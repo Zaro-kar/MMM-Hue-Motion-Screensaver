@@ -11,7 +11,8 @@ Module.register("MMM-Hue-Motion-Screensaver", {
         coolDown: 5 * 60, // Cooldown in Sekunden
         startTime: "06:00",
         endTime: "00:00",
-        pollInterval: 2000 // Intervall zur Abfrage des Sensors in ms
+        pollInterval: 2000, // Intervall zur Abfrage des Sensors in ms
+        activeDays: ["Sat", "Sun"] // Tage, an denen das Display aktiv sein soll, "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"
     },
 
     start: function () {
@@ -55,7 +56,8 @@ Module.register("MMM-Hue-Motion-Screensaver", {
         const now = new Date();
         const isWithinTimeRange = this.isWithinTimeRange(
             this.config.startTime,
-            this.config.endTime
+            this.config.endTime,
+            this.config.activeDays
         );
 
         if (motion) {
@@ -89,9 +91,10 @@ Module.register("MMM-Hue-Motion-Screensaver", {
         this.sendSocketNotification("TOGGLE_SCREEN", on);
     },
 
-    isWithinTimeRange: function (startTime, endTime) {
+    isWithinTimeRange: function (startTime, endTime, activeDays) {
         const now = new Date();
         const currentTime = now.getHours() * 60 + now.getMinutes();
+        const currentDay = now.toLocaleString("en-US", { weekday: "short" });
 
         const [startHour, startMinute] = startTime.split(":").map(Number);
         const [endHour, endMinute] = endTime.split(":").map(Number);
@@ -99,10 +102,12 @@ Module.register("MMM-Hue-Motion-Screensaver", {
         const start = startHour * 60 + startMinute;
         const end = endHour * 60 + endMinute;
 
+        const isActiveDay = activeDays.includes(currentDay);
+
         if (start <= end) {
-            return currentTime >= start && currentTime <= end;
+            return isActiveDay && currentTime >= start && currentTime <= end;
         } else {
-            return currentTime >= start || currentTime <= end;
+            return isActiveDay && (currentTime >= start || currentTime <= end);
         }
     },
 
@@ -110,7 +115,7 @@ Module.register("MMM-Hue-Motion-Screensaver", {
         const wrapper = document.createElement("div");
         wrapper.className = "MMM-Hue-Motion-Screensaver"; // CSS-Klasse hinzufügen
 
-        if (this.isWithinTimeRange(this.config.startTime, this.config.endTime)) {
+        if (this.isWithinTimeRange(this.config.startTime, this.config.endTime, this.config.activeDays)) {
             wrapper.innerHTML = `On between ${this.config.startTime} - ${this.config.endTime}`;
         } else {
             if (this.state === 1) {

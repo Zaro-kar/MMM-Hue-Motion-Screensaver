@@ -24,6 +24,9 @@
     "url": "https://github.com/Zaro-kar/MMM-Hue-Motion-Screensaver/issues"
   },
   "homepage": "https://github.com/Zaro-kar/MMM-Hue-Motion-Screensaver#readme",
+  "dependencies": {
+    "axios": "^1.4.0"
+  },
   "devDependencies": {
     "@eslint/js": "^9.10.0",
     "@stylistic/eslint-plugin": "^2.7.2",

@@ -13,6 +13,7 @@ Module.register("MMM-Hue-Motion-Screensaver", {
         pollInterval: 2000,
         activeDays: ["Sat", "Sun"],
         language: "en",
+        certPath: ""
     },
 
     /**

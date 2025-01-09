@@ -42,6 +42,7 @@ Option|Possible values|Default|Description
 `hueHost`|`string`|not available|**Required**. The IP address or hostname of the Hue Bridge (e.g., "192.168.1.2")
 `sensorId`|`string`|not available|**Required**. The ID of the motion sensor (e.g., "1")
 `apiKey`|`string`|not available|**Required**. The API key for the Hue Bridge (e.g., "your-api-key")
+`certPath`|`string`|not available|**Required**. The path to the certificate file (e.g., "/path/to/your/cert.pem")
 `coolDown`|`number`|300|The cooldown time in seconds before the screen turns off (e.g., 300)
 `activeDays`|`array`|["Sat", "Sun"]|The days on which the module is always on (e.g., ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]). **Note:** The `startTime` and `endTime` settings are only effective on these days.
 `startTime`|`string`|"06:00"|The start time in "HH:MM" format (e.g., "06:00"). **Note:** This works only in conjunction with `activeDays`. The monitor will stay on between `startTime` and `endTime` only on the days defined in `activeDays`.

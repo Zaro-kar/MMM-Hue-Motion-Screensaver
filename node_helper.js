@@ -1,11 +1,7 @@
 const NodeHelper = require("node_helper");
 const Log = require("logger");
+const axios = require("axios");
 const fs = require("fs");
-const path = require('path');
-const https = require("https");
-
-// Load the CA certificate
-const HUE_BRIDGE_CA_CERT = fs.readFileSync(path.join(__dirname, 'hue_bridge_ca_cert.pem'));
 
 module.exports = NodeHelper.create({
     /**
@@ -36,23 +32,22 @@ module.exports = NodeHelper.create({
      * @param {string} params.apiKey - The API key.
      * @param {string} params.certPath - The path to the certificate.
      */
-    checkMotion: async function ({ hueHost, sensorId, apiKey }) {
+    checkMotion: async function ({ hueHost, sensorId, apiKey, certPath }) {
         const pirUrl = `https://${hueHost}/clip/v2/resource/motion/${sensorId}`;
         const headers = {
             "hue-application-key": apiKey
         };
 
         try {
-            const response = await fetch(pirUrl, {
-                method: 'GET',
+            const response = await axios.get(pirUrl, {
                 headers: headers,
-                agent: new https.Agent({
-                    ca: HUE_BRIDGE_CA_CERT,
-                    rejectUnauthorized: true
+                httpsAgent: new (require("https").Agent)({
+                    ca: fs.readFileSync(certPath),
+                    rejectUnauthorized: false
                 })
             });
 
-            const data = await response.json();
+            const data = response.data;
             const motion = data?.data?.[0]?.motion?.motion_report?.motion || false;
             this.sendSocketNotification("MOTION_RESULT", motion);
         } catch (error) {

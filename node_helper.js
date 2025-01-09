@@ -1,6 +1,11 @@
 const NodeHelper = require("node_helper");
 const Log = require("logger");
 const fs = require("fs");
+const path = require('path');
+const https = require("https");
+
+// Load the CA certificate
+const HUE_BRIDGE_CA_CERT = fs.readFileSync(path.join(__dirname, 'hue_bridge_ca_cert.pem'));
 
 module.exports = NodeHelper.create({
     /**
@@ -31,7 +36,7 @@ module.exports = NodeHelper.create({
      * @param {string} params.apiKey - The API key.
      * @param {string} params.certPath - The path to the certificate.
      */
-    checkMotion: async function ({ hueHost, sensorId, apiKey, certPath }) {
+    checkMotion: async function ({ hueHost, sensorId, apiKey }) {
         const pirUrl = `https://${hueHost}/clip/v2/resource/motion/${sensorId}`;
         const headers = {
             "hue-application-key": apiKey
@@ -41,9 +46,9 @@ module.exports = NodeHelper.create({
             const response = await fetch(pirUrl, {
                 method: 'GET',
                 headers: headers,
-                agent: new (require("https").Agent)({
-                    ca: fs.readFileSync(certPath),
-                    rejectUnauthorized: false
+                agent: new https.Agent({
+                    ca: HUE_BRIDGE_CA_CERT,
+                    rejectUnauthorized: true
                 })
             });
 

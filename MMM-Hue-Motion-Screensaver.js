@@ -33,7 +33,7 @@ Module.register("MMM-Hue-Motion-Screensaver", {
      */
     loadLanguage: function () {
         const lang = this.config.language;
-        const languageFile = `src/languages/${lang}.json`;
+        const languageFile = `languages/${lang}.json`;
         fetch(languageFile)
             .then(response => response.json())
             .then(data => {

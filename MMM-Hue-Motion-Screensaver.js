@@ -11,55 +11,42 @@ Module.register("MMM-Hue-Motion-Screensaver", {
         endTime: "00:00",
         pollInterval: 2000,
         activeDays: ["Sat", "Sun"],
-        language: "en" // Add language option
+        language: "en"
     },
 
     languages: {
         en: {
-            onBetween: "Screen is on between",
+            onBetween: "On between",
             motionDetected: "Motion detected",
-            screenOffIn: "Screen will turn off in",
-            screenActive: "Screen is active"
+            screenOffIn: "Off in",
+            screenActive: "Screen active"
         },
         de: {
-            onBetween: "Bildschirm ist an zwischen",
+            onBetween: "An zwischen",
             motionDetected: "Bewegung erkannt",
-            screenOffIn: "Bildschirm wird ausgeschaltet in",
-            screenActive: "Bildschirm ist aktiv"
+            screenOffIn: "Aus in",
+            screenActive: "Bildschrim aktiv"
         }
-        // Add more languages as needed
     },
 
-    /**
-     * Called when the module is started.
-     */
     start: function () {
-        this.log("Starting module: " + this.name);
+        this.log("Starting: " + this.name);
         this.lastAction = new Date();
         this.state = -1;
         this.nextScreenOffTime = null;
         this.scheduleUpdate();
     },
 
-    /**
-     * Returns the stylesheets used by this module.
-     */
     getStyles: function () {
         return ["Hue-Motion-Screensaver.css"];
     },
 
-    /**
-     * Schedules the periodic update to check for motion.
-     */
     scheduleUpdate: function () {
         setInterval(() => {
             this.checkMotion();
         }, this.config.pollInterval);
     },
 
-    /**
-     * Sends a socket notification to check for motion.
-     */
     checkMotion: function () {
         this.sendSocketNotification("CHECK_MOTION", {
             hueHost: this.config.hueHost,
@@ -69,21 +56,12 @@ Module.register("MMM-Hue-Motion-Screensaver", {
         });
     },
 
-    /**
-     * Handles received socket notifications.
-     * @param {string} notification - The notification type.
-     * @param {any} payload - The payload of the notification.
-     */
     socketNotificationReceived: function (notification, payload) {
         if (notification === "MOTION_RESULT") {
             this.handleMotionResult(payload);
         }
     },
 
-    /**
-     * Handles the result of the motion check.
-     * @param {boolean} motion - Whether motion was detected.
-     */
     handleMotionResult: function (motion) {
         const now = new Date();
         const isWithinTimeRange = this.isWithinTimeRange(

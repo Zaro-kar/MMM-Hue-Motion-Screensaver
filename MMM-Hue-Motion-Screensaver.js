@@ -1,6 +1,4 @@
-// This file contains the main module logic for the MMM-Hue-Motion-Screensaver. 
-// It handles motion detection, screen toggling, and time range checks. 
-// The language texts are now referenced from separate JSON files.
+// This file contains the main module logic for the MMM-Hue-Motion-Screensaver.
 
 Module.register("MMM-Hue-Motion-Screensaver", {
     defaults: {
@@ -12,7 +10,12 @@ Module.register("MMM-Hue-Motion-Screensaver", {
         endTime: "00:00",
         pollInterval: 2000,
         activeDays: ["Sat", "Sun"],
-        language: "en",
+        texts: {
+            onBetween: "Screen is on between",
+            motionDetected: "Motion detected",
+            screenOffIn: "Screen will turn off in",
+            screenActive: "Screen is active"
+        },
         certPath: ""
     },
 
@@ -25,24 +28,6 @@ Module.register("MMM-Hue-Motion-Screensaver", {
         this.state = -1;
         this.nextScreenOffTime = null;
         this.scheduleUpdate();
-        this.loadLanguage();
-    },
-
-    /**
-     * Loads the language strings from the JSON files.
-     */
-    loadLanguage: function () {
-        const lang = this.config.language;
-        const languageFile = `languages/${lang}.json`;
-        fetch(languageFile)
-            .then(response => response.json())
-            .then(data => {
-                this.languages = data;
-                this.log("Loaded language file: " + languageFile);
-            })
-            .catch(error => {
-                this.logError("Failed to load language file", error);
-            });
     },
 
     /**
@@ -166,7 +151,7 @@ Module.register("MMM-Hue-Motion-Screensaver", {
         const wrapper = document.createElement("div");
         wrapper.className = "MMM-Hue-Motion-Screensaver";
 
-        const texts = this.languages || this.languages.en;
+        const texts = this.config.texts;
 
         if (this.isWithinTimeRange(this.config.startTime, this.config.endTime, this.config.activeDays)) {
             wrapper.innerHTML = `${texts.onBetween} ${this.config.startTime} - ${this.config.endTime}`;

@@ -65,11 +65,17 @@ module.exports = NodeHelper.create({
             ? "xrandr -display :0.0 --output HDMI-1 --auto --rotate left"
             : "xrandr -display :0.0 --output HDMI-1 --off";
 
+        let currentScreenStatus = null;
+
         require("child_process").exec(command, (error) => {
             if (error) {
                 this.logError("Error toggling screen:", error);
             } else {
-                this.log(`Screen toggled ${on ? "on" : "off"}`);
+                const newStatus = on ? "on" : "off";
+                if (currentScreenStatus !== newStatus) {
+                    this.log(`Screen toggled ${newStatus}`);
+                    currentScreenStatus = newStatus;
+                }
             }
         });
     },

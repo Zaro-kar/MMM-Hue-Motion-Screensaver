@@ -41,7 +41,6 @@ Module.register("MMM-Hue-Motion-Screensaver", {
             })
             .catch(error => {
                 this.logError("Failed to load language file", error);
-                this.languages = this.languages.en; // Fallback to English
             });
     },
 

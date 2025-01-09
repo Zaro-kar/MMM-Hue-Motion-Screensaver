@@ -4,6 +4,8 @@ const axios = require("axios");
 const fs = require("fs");
 
 module.exports = NodeHelper.create({
+    currentScreenState: null, // Variable to store the current screen state
+
     /**
      * Called when the node helper is started.
      */
@@ -65,16 +67,14 @@ module.exports = NodeHelper.create({
             ? "xrandr -display :0.0 --output HDMI-1 --auto --rotate left"
             : "xrandr -display :0.0 --output HDMI-1 --off";
 
-        let currentScreenStatus = null;
-
         require("child_process").exec(command, (error) => {
             if (error) {
                 this.logError("Error toggling screen:", error);
             } else {
                 const newStatus = on ? "on" : "off";
-                if (currentScreenStatus !== newStatus) {
+                if (this.currentScreenState !== newStatus) {
                     this.log(`Screen toggled ${newStatus}`);
-                    currentScreenStatus = newStatus;
+                    this.currentScreenState = newStatus;
                 }
             }
         });

@@ -2,6 +2,8 @@
 // It handles motion detection, screen toggling, and time range checks. 
 // The language texts are now referenced from separate JSON files.
 
+const Log = require("logger");
+
 Module.register("MMM-Hue-Motion-Screensaver", {
     defaults: {
         hueHost: "",

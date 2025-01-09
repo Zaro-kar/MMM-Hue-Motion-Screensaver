@@ -5,18 +5,29 @@ Module.register("MMM-Hue-Motion-Screensaver", {
         hueHost: "",
         sensorId: "",
         apiKey: "",
+        certPath: "",
         coolDown: 5 * 60,
         startTime: "06:00",
         endTime: "00:00",
         pollInterval: 2000,
         activeDays: ["Sat", "Sun"],
-        texts: {
+        language: "en" // Add language option
+    },
+
+    languages: {
+        en: {
             onBetween: "Screen is on between",
             motionDetected: "Motion detected",
             screenOffIn: "Screen will turn off in",
             screenActive: "Screen is active"
         },
-        certPath: ""
+        de: {
+            onBetween: "Bildschirm ist an zwischen",
+            motionDetected: "Bewegung erkannt",
+            screenOffIn: "Bildschirm wird ausgeschaltet in",
+            screenActive: "Bildschirm ist aktiv"
+        }
+        // Add more languages as needed
     },
 
     /**
@@ -151,7 +162,7 @@ Module.register("MMM-Hue-Motion-Screensaver", {
         const wrapper = document.createElement("div");
         wrapper.className = "MMM-Hue-Motion-Screensaver";
 
-        const texts = this.config.texts;
+        const texts = this.languages[this.config.language] || this.languages.en;
 
         if (this.isWithinTimeRange(this.config.startTime, this.config.endTime, this.config.activeDays)) {
             wrapper.innerHTML = `${texts.onBetween} ${this.config.startTime} - ${this.config.endTime}`;

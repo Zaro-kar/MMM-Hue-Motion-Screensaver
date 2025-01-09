@@ -40,6 +40,7 @@ Module.register("MMM-Hue-Motion-Screensaver", {
             .then(response => response.json())
             .then(data => {
                 this.languages = data;
+                this.log("Loaded language file: " + languageFile);
             })
             .catch(error => {
                 this.logError("Failed to load language file", error);

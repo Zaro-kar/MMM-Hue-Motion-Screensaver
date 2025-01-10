@@ -7,7 +7,7 @@ Module.register("MMM-Hue-Motion-Screensaver", {
         apiKey: "",
         coolDown: 5 * 60,
         startTime: "06:00",
-        endTime: "00:00",
+        endTime: "22:00",
         pollInterval: 2000,
         activeDays: ["Sat", "Sun"],
         language: "en"

@@ -1,5 +1,17 @@
 # MMM-Hue-Motion-Screensaver
-MagicMirror² module to control the screen based on motion detected by a Hue motion sensor.
+
+The MMM-Hue-Motion-Screensaver module allows you to automatically control the screen of your [MagicMirror²][mm] based on motion detected by a Philips Hue motion sensor.
+
+With this module, you can ensure that your [MagicMirror²][mm] is only active when someone is nearby, providing a seamless and intelligent user experience, as well as saving energy and extending the life of your screen. It is easy to integrate into your existing MagicMirror² setup.
+
+## Examples
+
+| Screenshot | Description |
+|------------|-------------|
+| ![Screenshot 0](./screenshots/screenshot_0.png) | *Display when the timer is active and the screen is about to turn off.* |
+| ![Screenshot 1](./screenshots/screenshot_1.png) | *Display when motion is detected.* |
+| ![Screenshot 2](./screenshots/screenshot_2.png) | *Display when `activeDays`, `startTime`, and `endTime` are configured, and the screen stays on between the specified times on those days.* |
+| ![Screenshot 3](./screenshots/screenshot_3.png) | *Display right after MagicMirror starts, when no motion has been detected yet.* |
 
 ## Installation
 
@@ -28,7 +40,7 @@ To use this module, add it to the modules array in the `config/config.js` file:
     module: 'MMM-Hue-Motion-Screensaver',
     position: 'lower_third',
     config: {
-        hueHost: 'your-hue-bridge-ip', // Required
+        hueBridgeID: 'your-hue-bridge-id', // Required
         sensorId: 'your-sensor-id', // Required
         apiKey: 'your-api-key', // Required
     }
@@ -39,13 +51,13 @@ To use this module, add it to the modules array in the `config/config.js` file:
 
 Option|Possible values|Default|Description
 ------|------|------|-----------
-`hueHost`|`string`|not available|**Required**. The IP address or hostname of the Hue Bridge (e.g., "192.168.1.2")
+`hueBridgeID`|`string`|not available|**Required**. The ID of your Hue Bridge (e.g., "beb7cfcccd56ab3a")
 `sensorId`|`string`|not available|**Required**. The ID of the motion sensor (e.g., "1")
 `apiKey`|`string`|not available|**Required**. The API key for the Hue Bridge (e.g., "your-api-key")
 `coolDown`|`number`|300|The cooldown time in seconds before the screen turns off (e.g., 300)
 `activeDays`|`array`|["Sat", "Sun"]|The days on which the module is always on (e.g., ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]). **Note:** The `startTime` and `endTime` settings are only effective on these days.
 `startTime`|`string`|"06:00"|The start time in "HH:MM" format (e.g., "06:00"). **Note:** This works only in conjunction with `activeDays`. The monitor will stay on between `startTime` and `endTime` only on the days defined in `activeDays`.
-`endTime`|`string`|"00:00"|The end time in "HH:MM" format (e.g., "00:00"). **Note:** This works only in conjunction with `activeDays`. The monitor will stay on between `startTime` and `endTime` only on the days defined in `activeDays`.
+`endTime`|`string`|"22:00"|The end time in "HH:MM" format (e.g., "22:00"). **Note:** This works only in conjunction with `activeDays`. The monitor will stay on between `startTime` and `endTime` only on the days defined in `activeDays`.
 `pollInterval`|`number`|2000|The polling interval in milliseconds (e.g., 2000)
 `language`|`string`|"en"|The language for the display (available options: "en", "de")
 
@@ -53,9 +65,35 @@ Option|Possible values|Default|Description
 
 [Official 'Getting Started' guid from Philips Hue](https://developers.meethue.com/develop/hue-api-v2/getting-started/)
 
-### Obtaining the Hue IP address or hostname
+### Obtaining the Hue Bridge ID
 
-To find the IP address or hostname of your Hue Bridge, you can use the Philips Hue app or check your router's connected devices list. The IP address usually looks something like "192.168.1.2".
+To find the ID of your Hue Bridge, you can use the following command:
+
+```bash
+openssl s_client -showcerts -connect <Bridge-IP-Address>:443
+```
+
+The output will include a line like this:
+
+```
+# I've replaced the actual ID with 'HUE_BRIDGE_ID'
+subject=/C=NL/O=Philips Hue/CN=<HUE_BRIDGE_ID>
+issuer=/C=NL/O=Philips Hue/CN=<HUE_BRIDGE_ID>
+```
+
+### Add the Bridge ID as host to /etc/hosts
+
+In order to use https for the requests to the Hue Bridge, you have to add the `hueBridgeID` along with the IP address of the Hue Bridge to the `/etc/hosts` file:
+
+```bash
+sudo nano /etc/hosts
+```
+
+Add the following line:
+
+```
+<Bridge-IP-Address>     <hueBridgeID>
+```
 
 ### Generating an API key
 

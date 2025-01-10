@@ -5,7 +5,6 @@ Module.register("MMM-Hue-Motion-Screensaver", {
         hueHost: "",
         sensorId: "",
         apiKey: "",
-        certPath: "",
         coolDown: 5 * 60,
         startTime: "06:00",
         endTime: "00:00",
@@ -52,7 +51,6 @@ Module.register("MMM-Hue-Motion-Screensaver", {
             hueHost: this.config.hueHost,
             sensorId: this.config.sensorId,
             apiKey: this.config.apiKey,
-            certPath: this.config.certPath
         });
     },
 

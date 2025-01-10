@@ -32,9 +32,8 @@ module.exports = NodeHelper.create({
      * @param {string} params.hueHost - The hostname or IP address of the Hue Bridge.
      * @param {string} params.sensorId - The sensor ID.
      * @param {string} params.apiKey - The API key.
-     * @param {string} params.certPath - The path to the certificate.
      */
-    checkMotion: async function ({ hueHost, sensorId, apiKey, certPath }) {
+    checkMotion: async function ({ hueHost, sensorId, apiKey }) {
         const pirUrl = `https://${hueHost}/clip/v2/resource/motion/${sensorId}`;
         const headers = {
             "hue-application-key": apiKey
@@ -44,8 +43,8 @@ module.exports = NodeHelper.create({
             const response = await axios.get(pirUrl, {
                 headers: headers,
                 httpsAgent: new (require("https").Agent)({
-                    ca: fs.readFileSync(certPath),
-                    rejectUnauthorized: false
+                    ca: fs.readFileSync(__dirname + "/hue_bridge_ca_cert.pem"),
+                    rejectUnauthorized: true
                 })
             });
 

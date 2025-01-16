@@ -10,7 +10,9 @@ Module.register("MMM-Hue-Motion-Screensaver", {
     endTime: "22:00",
     pollInterval: 2000,
     activeDays: ["Sat", "Sun"],
-    language: "en"
+    language: "en",
+    screenCommandOn: "xrandr -display :0.0 --output HDMI-1 --auto",
+    screenCommandOff: "xrandr -display :0.0 --output HDMI-1 --off"
   },
 
   languages: {
@@ -100,7 +102,11 @@ Module.register("MMM-Hue-Motion-Screensaver", {
      * @param {boolean} on - Whether to turn the screen on.
      */
   toggleScreen: function (on) {
-    this.sendSocketNotification("TOGGLE_SCREEN", on)
+    this.sendSocketNotification("TOGGLE_SCREEN", {
+      on,
+      commandOn: this.config.screenCommandOn,
+      commandOff: this.config.screenCommandOff
+    })
   },
 
   /**

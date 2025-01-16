@@ -51,19 +51,23 @@ To use this module, add it to the modules array in the `config/config.js` file:
 
 Option|Possible values|Default|Description
 ------|------|------|-----------
-`hueBridgeID`|`string`|not available|**Required**. The ID of your Hue Bridge (e.g., "beb7cfcccd56ab3a")
-`sensorId`|`string`|not available|**Required**. The ID of the motion sensor (e.g., "1")
-`apiKey`|`string`|not available|**Required**. The API key for the Hue Bridge (e.g., "your-api-key")
+`hueBridgeID`|`string`|N/A|**Required**. The ID of your Hue Bridge (e.g., "beb7cfcccd56ab3a")
+`sensorId`|`string`|N/A|**Required**. The ID of the motion sensor (e.g., "1")
+`apiKey`|`string`|N/A|**Required**. The API key for the Hue Bridge (e.g., "your-api-key")
 `coolDown`|`number`|300|The cooldown time in seconds before the screen turns off (e.g., 300)
 `activeDays`|`array`|["Sat", "Sun"]|The days on which the module is always on (e.g., ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]). **Note:** The `startTime` and `endTime` settings are only effective on these days.
 `startTime`|`string`|"06:00"|The start time in "HH:MM" format (e.g., "06:00"). **Note:** This works only in conjunction with `activeDays`. The monitor will stay on between `startTime` and `endTime` only on the days defined in `activeDays`.
 `endTime`|`string`|"22:00"|The end time in "HH:MM" format (e.g., "22:00"). **Note:** This works only in conjunction with `activeDays`. The monitor will stay on between `startTime` and `endTime` only on the days defined in `activeDays`.
 `pollInterval`|`number`|2000|The polling interval in milliseconds (e.g., 2000)
 `language`|`string`|"en"|The language for the display (available options: "en", "de")
+`screenCommandOn`|`string`|"xrandr -display :0.0 --output HDMI-1 --auto"|The command to turn the screen on. You can also specify additional options like `--rotate left`, `--brightness 0.7`, etc.
+`screenCommandOff`|`string`|"xrandr -display :0.0 --output HDMI-1 --off"|The command to turn the screen off. You can also specify additional options like `--rotate left`, `--brightness 0.7`, etc.
+
+**Note:** This module has been tested with `xrandr` and works by default with it. While you can theoretically provide a command for another driver like Wayland, functionality with other drivers is not guaranteed.
 
 ## Obtain the Values for the required parameter
 
-[Official 'Getting Started' guid from Philips Hue](https://developers.meethue.com/develop/hue-api-v2/getting-started/)
+[Official 'Getting Started' guide from Philips Hue](https://developers.meethue.com/develop/hue-api-v2/getting-started/)
 
 ### Obtaining the Hue Bridge ID
 

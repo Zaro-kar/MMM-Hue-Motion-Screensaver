@@ -60,11 +60,11 @@ module.exports = NodeHelper.create({
   /**
      * Toggles the screen on or off.
      * @param {boolean} on - Whether to turn the screen on.
+     * @param {string} commandOn - The command to turn the screen on.
+     * @param {string} commandOff - The command to turn the screen off.
      */
-  toggleScreen: function (on) {
-    const command = on
-      ? "xrandr -display :0.0 --output HDMI-1 --auto --rotate left"
-      : "xrandr -display :0.0 --output HDMI-1 --off"
+  toggleScreen: function ({ on, commandOn, commandOff }) {
+    const command = on ? commandOn : commandOff
 
     require("child_process").exec(command, (error) => {
       if (error) {

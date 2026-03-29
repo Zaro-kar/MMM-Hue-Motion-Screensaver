@@ -24,7 +24,8 @@ const config = [
       "@stylistic/brace-style": ["error", "1tbs", { allowSingleLine: true }],
       "@stylistic/comma-dangle": ["error", "only-multiline"],
       "@stylistic/max-statements-per-line": ["error", { max: 2 }],
-      "@stylistic/quotes": ["error", "double"]
+      "@stylistic/quotes": ["error", "double"],
+      "no-console": "error"
     },
   }
 ]

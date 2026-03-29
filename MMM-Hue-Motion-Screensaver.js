@@ -5,7 +5,7 @@ Module.register("MMM-Hue-Motion-Screensaver", {
     hueHost: "",
     sensorId: "",
     apiKey: "",
-    coolDown: 5 * 60,
+    coolDown: 5 * 60, // seconds before screen turns off after last motion
     startTime: "06:00",
     endTime: "22:00",
     pollInterval: 2000,
@@ -26,15 +26,22 @@ Module.register("MMM-Hue-Motion-Screensaver", {
       onBetween: "An zwischen",
       motionDetected: "Bewegung erkannt",
       screenOffIn: "Aus in",
-      screenActive: "Bildschrim aktiv"
+      screenActive: "Bildschirm aktiv"
     }
   },
 
   start: function () {
     this.log("Starting: " + this.name)
+
+    if (!this.config.hueHost || !this.config.sensorId || !this.config.apiKey) {
+      this.logError("Missing required config: hueHost, sensorId, and apiKey must all be set.")
+      return
+    }
+
     this.lastAction = new Date()
     this.state = -1
     this.nextScreenOffTime = null
+    this.updateTimer = null
     this.scheduleUpdate()
   },
 
@@ -43,9 +50,26 @@ Module.register("MMM-Hue-Motion-Screensaver", {
   },
 
   scheduleUpdate: function () {
-    setInterval(() => {
+    this.updateTimer = setInterval(() => {
       this.checkMotion()
     }, this.config.pollInterval)
+  },
+
+  suspend: function () {
+    if (this.updateTimer) {
+      clearInterval(this.updateTimer)
+      this.updateTimer = null
+    }
+  },
+
+  resume: function () {
+    if (!this.updateTimer) {
+      this.scheduleUpdate()
+    }
+  },
+
+  stop: function () {
+    this.suspend()
   },
 
   checkMotion: function () {
@@ -53,6 +77,8 @@ Module.register("MMM-Hue-Motion-Screensaver", {
       hueHost: this.config.hueHost,
       sensorId: this.config.sensorId,
       apiKey: this.config.apiKey,
+      screenCommandOn: this.config.screenCommandOn,
+      screenCommandOff: this.config.screenCommandOff,
     })
   },
 
@@ -85,7 +111,7 @@ Module.register("MMM-Hue-Motion-Screensaver", {
     ) {
       if (isWithinTimeRange) {
         this.log("SCREEN OFF command ignored due to time range")
-      } else {
+      } else if (this.state !== 0) {
         this.state = 0
         this.toggleScreen(false)
         this.nextScreenOffTime = null
@@ -102,11 +128,7 @@ Module.register("MMM-Hue-Motion-Screensaver", {
      * @param {boolean} on - Whether to turn the screen on.
      */
   toggleScreen: function (on) {
-    this.sendSocketNotification("TOGGLE_SCREEN", {
-      on,
-      commandOn: this.config.screenCommandOn,
-      commandOff: this.config.screenCommandOff
-    })
+    this.sendSocketNotification("TOGGLE_SCREEN", on)
   },
 
   /**
@@ -147,18 +169,18 @@ Module.register("MMM-Hue-Motion-Screensaver", {
     const texts = this.languages[this.config.language] || this.languages.en
 
     if (this.isWithinTimeRange(this.config.startTime, this.config.endTime, this.config.activeDays)) {
-      wrapper.innerHTML = `${texts.onBetween} ${this.config.startTime} - ${this.config.endTime}`
+      wrapper.textContent = `${texts.onBetween} ${this.config.startTime} - ${this.config.endTime}`
     } else {
       if (this.state === 1) {
-        wrapper.innerHTML = texts.motionDetected
+        wrapper.textContent = texts.motionDetected
       } else if (this.state === 2 && this.nextScreenOffTime) {
         const now = new Date()
         const timeRemaining = Math.max(0, Math.floor((this.nextScreenOffTime - now) / 1000))
         const minutes = String(Math.floor(timeRemaining / 60)).padStart(2, "0")
         const seconds = String(timeRemaining % 60).padStart(2, "0")
-        wrapper.innerHTML = `${texts.screenOffIn}: ${minutes}:${seconds}`
+        wrapper.textContent = `${texts.screenOffIn}: ${minutes}:${seconds}`
       } else {
-        wrapper.innerHTML = texts.screenActive
+        wrapper.textContent = texts.screenActive
       }
     }
     return wrapper

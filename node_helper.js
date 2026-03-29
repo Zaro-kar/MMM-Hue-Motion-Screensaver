@@ -2,15 +2,24 @@ const NodeHelper = require("node_helper")
 const Log = require("logger")
 const axios = require("axios")
 const fs = require("fs")
+const https = require("https")
+const { exec } = require("child_process")
 
 module.exports = NodeHelper.create({
   currentScreenState: null, // Variable to store the current screen state
+  moduleConfig: null, // Cached config received from the front-end on first CHECK_MOTION
+  httpsAgent: null, // Reusable HTTPS agent with Hue Bridge CA cert
 
   /**
      * Called when the node helper is started.
      */
   start: function () {
     this.log("Starting node helper for: " + this.name)
+    const caCert = fs.readFileSync(__dirname + "/hue_bridge_ca_cert.pem")
+    this.httpsAgent = new https.Agent({
+      ca: caCert,
+      rejectUnauthorized: true
+    })
   },
 
   /**
@@ -20,6 +29,9 @@ module.exports = NodeHelper.create({
      */
   socketNotificationReceived: function (notification, payload) {
     if (notification === "CHECK_MOTION") {
+      if (!this.moduleConfig) {
+        this.moduleConfig = payload
+      }
       this.checkMotion(payload)
     } else if (notification === "TOGGLE_SCREEN") {
       this.toggleScreen(payload)
@@ -34,6 +46,11 @@ module.exports = NodeHelper.create({
      * @param {string} params.apiKey - The API key.
      */
   checkMotion: async function ({ hueHost, sensorId, apiKey }) {
+    if (!hueHost || typeof hueHost !== "string" || !sensorId || typeof sensorId !== "string") {
+      this.logError("Invalid config: hueHost and sensorId must be non-empty strings")
+      return
+    }
+
     const pirUrl = `https://${hueHost}/clip/v2/resource/motion/${sensorId}`
     const headers = {
       "hue-application-key": apiKey
@@ -42,10 +59,7 @@ module.exports = NodeHelper.create({
     try {
       const response = await axios.get(pirUrl, {
         headers: headers,
-        httpsAgent: new (require("https").Agent)({
-          ca: fs.readFileSync(__dirname + "/hue_bridge_ca_cert.pem"),
-          rejectUnauthorized: true
-        })
+        httpsAgent: this.httpsAgent
       })
 
       const data = response.data
@@ -60,13 +74,16 @@ module.exports = NodeHelper.create({
   /**
      * Toggles the screen on or off.
      * @param {boolean} on - Whether to turn the screen on.
-     * @param {string} commandOn - The command to turn the screen on.
-     * @param {string} commandOff - The command to turn the screen off.
      */
-  toggleScreen: function ({ on, commandOn, commandOff }) {
-    const command = on ? commandOn : commandOff
+  toggleScreen: function (on) {
+    if (!this.moduleConfig) {
+      this.logError("toggleScreen called before config was received")
+      return
+    }
 
-    require("child_process").exec(command, (error) => {
+    const command = on ? this.moduleConfig.screenCommandOn : this.moduleConfig.screenCommandOff
+
+    exec(command, { timeout: 5000 }, (error) => {
       if (error) {
         this.logError("Error toggling screen:", error)
       } else {

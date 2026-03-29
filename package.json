@@ -1,6 +1,9 @@
 {
   "name": "mmm-hue-motion-screensaver",
   "version": "1.1.0",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "description": "MagicMirror module to control the screen based on motion detected by a Hue motion sensor.",
   "main": "MMM-Hue-Motion-Screensaver.js",
   "scripts": {

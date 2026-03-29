@@ -7,7 +7,7 @@ const { exec } = require("child_process")
 
 module.exports = NodeHelper.create({
   currentScreenState: null, // Variable to store the current screen state
-  moduleConfig: null, // Cached config received from the front-end on first CHECK_MOTION
+  moduleConfig: null, // Config received once via INIT_CONFIG
   httpsAgent: null, // Reusable HTTPS agent with Hue Bridge CA cert
 
   /**
@@ -28,26 +28,32 @@ module.exports = NodeHelper.create({
      * @param {any} payload - The payload of the notification.
      */
   socketNotificationReceived: function (notification, payload) {
-    if (notification === "CHECK_MOTION") {
-      if (!this.moduleConfig) {
-        this.moduleConfig = payload
-      }
-      this.checkMotion(payload)
+    if (notification === "INIT_CONFIG") {
+      this.moduleConfig = payload
+    } else if (notification === "CHECK_MOTION") {
+      this.checkMotion()
     } else if (notification === "TOGGLE_SCREEN") {
       this.toggleScreen(payload)
     }
   },
 
   /**
-     * Checks the motion state from the Hue sensor.
-     * @param {Object} params - The parameters for the motion check.
-     * @param {string} params.hueHost - The hostname or IP address of the Hue Bridge.
-     * @param {string} params.sensorId - The sensor ID.
-     * @param {string} params.apiKey - The API key.
+     * Checks the motion state from the Hue sensor using the cached module config.
      */
-  checkMotion: async function ({ hueHost, sensorId, apiKey }) {
-    if (!hueHost || typeof hueHost !== "string" || !sensorId || typeof sensorId !== "string") {
-      this.logError("Invalid config: hueHost and sensorId must be non-empty strings")
+  checkMotion: async function () {
+    if (!this.moduleConfig) {
+      this.logError("checkMotion called before INIT_CONFIG was received")
+      return
+    }
+
+    const { hueHost, sensorId, apiKey } = this.moduleConfig
+
+    if (
+      !hueHost || typeof hueHost !== "string"
+      || !sensorId || typeof sensorId !== "string"
+      || !apiKey || typeof apiKey !== "string"
+    ) {
+      this.logError("Invalid config: hueHost, sensorId, and apiKey must be non-empty strings")
       return
     }
 
@@ -66,18 +72,20 @@ module.exports = NodeHelper.create({
       const motion = data?.data?.[0]?.motion?.motion_report?.motion || false
       this.sendSocketNotification("MOTION_RESULT", motion)
     } catch (error) {
-      this.logError("Error fetching motion state:", error)
+      this.logError(`Error fetching motion state: ${error.message} (status: ${error.response?.status ?? "N/A"})`)
       this.sendSocketNotification("MOTION_RESULT", true)
     }
   },
 
   /**
-     * Toggles the screen on or off.
+     * Toggles the screen on or off using commands from the cached module config.
+     * Note: screenCommandOn/Off are user-configured shell commands from config.js.
+     * They are treated as trusted static configuration, not as external input.
      * @param {boolean} on - Whether to turn the screen on.
      */
   toggleScreen: function (on) {
     if (!this.moduleConfig) {
-      this.logError("toggleScreen called before config was received")
+      this.logError("toggleScreen called before INIT_CONFIG was received")
       return
     }
 
@@ -107,9 +115,13 @@ module.exports = NodeHelper.create({
   /**
      * Logs an error message.
      * @param {string} message - The message to log.
-     * @param {Error} error - The error object.
+     * @param {Error} [error] - Optional error object.
      */
   logError: function (message, error) {
-    Log.error(`[${this.name}] ${message}`, error)
+    if (error) {
+      Log.error(`[${this.name}] ${message}`, error)
+    } else {
+      Log.error(`[${this.name}] ${message}`)
+    }
   }
 })

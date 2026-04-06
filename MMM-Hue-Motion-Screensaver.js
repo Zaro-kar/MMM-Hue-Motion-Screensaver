@@ -93,6 +93,7 @@ Module.register("MMM-Hue-Motion-Screensaver", {
   },
 
   handleMotionResult: function (motion) {
+    if (this.state === undefined) return
     const now = new Date()
     const isWithinTimeRange = this.isWithinTimeRange(
       this.config.startTime,
@@ -109,7 +110,7 @@ Module.register("MMM-Hue-Motion-Screensaver", {
         this.state = 1
         this.toggleScreen(true)
       }
-    } else if (!motion && now - this.lastAction > this.config.coolDown * 1000) {
+    } else if (now - this.lastAction > this.config.coolDown * 1000) {
       if (isWithinTimeRange) {
         this.log("SCREEN OFF command ignored due to time range")
       } else if (this.state !== 0) {

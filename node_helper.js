@@ -1,16 +1,16 @@
-const NodeHelper = require("node_helper");
-const Log = require("logger");
-const fs = require("fs");
-const https = require("https");
-const { exec } = require("child_process");
+const NodeHelper = require("node_helper")
+const Log = require("logger")
+const fs = require("fs")
+const https = require("https")
+const { exec } = require("child_process")
 
-let axios;
+let axios
 try {
-  axios = require("axios");
-} catch (e) {
+  axios = require("axios")
+} catch {
   Log.error(
     "[MMM-Hue-Motion-Screensaver] Failed to load 'axios'. Run 'npm install' in the module directory.",
-  );
+  )
 }
 
 module.exports = NodeHelper.create({
@@ -22,12 +22,12 @@ module.exports = NodeHelper.create({
    * Called when the node helper is started.
    */
   start: function () {
-    this.log("Starting node helper for: " + this.name);
-    const caCert = fs.readFileSync(__dirname + "/hue_bridge_ca_cert.pem");
+    this.log("Starting node helper for: " + this.name)
+    const caCert = fs.readFileSync(__dirname + "/hue_bridge_ca_cert.pem")
     this.httpsAgent = new https.Agent({
       ca: caCert,
       rejectUnauthorized: true,
-    });
+    })
   },
 
   /**
@@ -37,11 +37,11 @@ module.exports = NodeHelper.create({
    */
   socketNotificationReceived: function (notification, payload) {
     if (notification === "INIT_CONFIG") {
-      this.moduleConfig = payload;
+      this.moduleConfig = payload
     } else if (notification === "CHECK_MOTION") {
-      this.checkMotion();
+      this.checkMotion()
     } else if (notification === "TOGGLE_SCREEN") {
-      this.toggleScreen(payload);
+      this.toggleScreen(payload)
     }
   },
 
@@ -52,50 +52,54 @@ module.exports = NodeHelper.create({
     if (!axios) {
       this.logError(
         "axios is not available. Run 'npm install' in the module directory.",
-      );
-      return;
+      )
+      return
     }
 
     if (!this.moduleConfig) {
-      this.logError("checkMotion called before INIT_CONFIG was received");
-      return;
+      this.logError("checkMotion called before INIT_CONFIG was received")
+      return
     }
 
-    const { hueHost, sensorId, apiKey } = this.moduleConfig;
+    const { hueHost, sensorId, apiKey } = this.moduleConfig
 
     if (
-      !hueHost ||
-      typeof hueHost !== "string" ||
-      !sensorId ||
-      typeof sensorId !== "string" ||
-      !apiKey ||
-      typeof apiKey !== "string"
+      !hueHost
+      || typeof hueHost !== "string"
+      || !sensorId
+      || typeof sensorId !== "string"
+      || !apiKey
+      || typeof apiKey !== "string"
     ) {
       this.logError(
         "Invalid config: hueHost, sensorId, and apiKey must be non-empty strings",
-      );
-      return;
+      )
+      return
     }
 
-    const pirUrl = `https://${hueHost}/clip/v2/resource/motion/${sensorId}`;
+    const pirUrl = `https://${hueHost}/clip/v2/resource/motion/${sensorId}`
     const headers = {
       "hue-application-key": apiKey,
-    };
+    }
 
     try {
       const response = await axios.get(pirUrl, {
         headers: headers,
         httpsAgent: this.httpsAgent,
-      });
+      })
 
-      const data = response.data;
-      const motion = data?.data?.[0]?.motion?.motion_report?.motion || false;
-      this.sendSocketNotification("MOTION_RESULT", motion);
+      const data = response.data
+      const motionReport = data?.data?.[0]?.motion?.motion_report
+      if (!motionReport) {
+        this.log("Unexpected Hue API response shape — treating as no motion")
+      }
+      const motion = motionReport?.motion || false
+      this.sendSocketNotification("MOTION_RESULT", motion)
     } catch (error) {
       this.logError(
         `Error fetching motion state: ${error.message} (status: ${error.response?.status ?? "N/A"})`,
-      );
-      this.sendSocketNotification("MOTION_RESULT", true);
+      )
+      this.sendSocketNotification("MOTION_RESULT", true)
     }
   },
 
@@ -107,27 +111,28 @@ module.exports = NodeHelper.create({
    */
   toggleScreen: function (on) {
     if (!this.moduleConfig) {
-      this.logError("toggleScreen called before INIT_CONFIG was received");
-      return;
+      this.logError("toggleScreen called before INIT_CONFIG was received")
+      return
     }
 
     const command = on
       ? this.moduleConfig.screenCommandOn
-      : this.moduleConfig.screenCommandOff;
+      : this.moduleConfig.screenCommandOff
 
+    // command originates from config.js — a trusted local file, not external input
     exec(command, { timeout: 5000 }, (error, _stdout, stderr) => {
       if (error) {
         this.logError(
           `Error toggling screen (exit code ${error.code}): ${error.message}${stderr ? " — stderr: " + stderr.trim() : ""}`,
-        );
+        )
       } else {
-        const newStatus = on ? "on" : "off";
+        const newStatus = on ? "on" : "off"
         if (this.currentScreenState !== newStatus) {
-          this.log(`Screen toggled ${newStatus}`);
-          this.currentScreenState = newStatus;
+          this.log(`Screen toggled ${newStatus}`)
+          this.currentScreenState = newStatus
         }
       }
-    });
+    })
   },
 
   /**
@@ -135,7 +140,7 @@ module.exports = NodeHelper.create({
    * @param {string} message - The message to log.
    */
   log: function (message) {
-    Log.info(`[${this.name}] ${message}`);
+    Log.info(`[${this.name}] ${message}`)
   },
 
   /**
@@ -145,9 +150,9 @@ module.exports = NodeHelper.create({
    */
   logError: function (message, error) {
     if (error) {
-      Log.error(`[${this.name}] ${message}`, error);
+      Log.error(`[${this.name}] ${message}`, error)
     } else {
-      Log.error(`[${this.name}] ${message}`);
+      Log.error(`[${this.name}] ${message}`)
     }
   },
-});
+})

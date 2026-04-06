@@ -22,7 +22,11 @@ In your terminal, go to your [MagicMirror²][mm] Module folder and clone MMM-Hue
 ```bash
 cd ~/MagicMirror/modules
 git clone https://github.com/Zaro-kar/MMM-Hue-Motion-Screensaver.git
+cd MMM-Hue-Motion-Screensaver
+npm install
 ```
+
+> **Note:** The `npm install` step is required to install the `axios` dependency used by the node helper. Without it, the module will silently fail to load.
 
 ### Update
 
@@ -116,6 +120,42 @@ To find the ID of your Hue motion sensor, you can use the Hue API. Open a web br
 ### Hue Bridge CA Certificate
 
 The `hue_bridge_ca_cert.pem` file included in this project is the public CA certificate for the Hue Bridge. It is used to establish a secure HTTPS connection with the Hue Bridge. You can find this certificate on the official Philips Hue developer website: [Using HTTPS](https://developers.meethue.com/develop/application-design-guidance/using-https/).
+
+## Server-only + client-only setup (e.g. LXC + Raspberry Pi)
+
+If MagicMirror² runs as a **server only** (e.g. in an LXC container or on a separate machine) and the display is on a separate **client device** (e.g. a Raspberry Pi running only the browser), the screen commands in `node_helper.js` would execute on the server — where no display is connected.
+
+The solution is to run the screen commands remotely via SSH from the server to the client device.
+
+### 1. Set up passwordless SSH from the server to the client
+
+On the server (as the user running MagicMirror):
+
+```bash
+# Generate a key without a passphrase (press Enter twice when prompted)
+ssh-keygen -t ed25519 -C "magicmirror"
+
+# Copy the key to the Raspberry Pi
+ssh-copy-id pi@<raspberry-ip>
+
+# Test the connection
+ssh pi@<raspberry-ip> 'echo ok'
+```
+
+> **Important:** The key must have **no passphrase**, otherwise the non-interactive `exec()` call in `node_helper.js` will fail silently.
+
+### 2. Update screenCommandOn / screenCommandOff in config.js
+
+Wrap your existing screen commands in an SSH call:
+
+```js
+screenCommandOn:  "ssh pi@<raspberry-ip> 'xrandr -display :0.0 --output HDMI-1 --auto --rotate left'",
+screenCommandOff: "ssh pi@<raspberry-ip> 'xrandr -display :0.0 --output HDMI-1 --off'",
+```
+
+The `-display :0.0` flag passed directly to `xrandr` ensures the command targets the correct display even when no `DISPLAY` environment variable is set in the SSH session.
+
+---
 
 ## Sending notifications to the module
 

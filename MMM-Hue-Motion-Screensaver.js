@@ -122,7 +122,9 @@ Module.register("MMM-Hue-Motion-Screensaver", {
       this.state = 2
     }
 
-    this.updateDom()
+    if (this.state !== 0) {
+      this.updateDom()
+    }
   },
 
   /**

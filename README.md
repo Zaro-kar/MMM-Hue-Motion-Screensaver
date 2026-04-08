@@ -123,37 +123,97 @@ The `hue_bridge_ca_cert.pem` file included in this project is the public CA cert
 
 ## Server-only + client-only setup (e.g. LXC + Raspberry Pi)
 
-If MagicMirror² runs as a **server only** (e.g. in an LXC container or on a separate machine) and the display is on a separate **client device** (e.g. a Raspberry Pi running only the browser), the screen commands in `node_helper.js` would execute on the server — where no display is connected.
+If MagicMirror² runs as a **server only** (e.g. in an LXC container or on a separate machine) and the display is on a separate **client device** (e.g. a Raspberry Pi running only the browser), the screen commands in `node_helper.js` execute on the server — where no display is connected.
 
 The solution is to run the screen commands remotely via SSH from the server to the client device.
 
-### 1. Set up passwordless SSH from the server to the client
+> **Why not `xrandr --off`, `xset dpms`, or `vcgencmd display_power`?**
+> - `xrandr --output HDMI-1 --off` shuts the output off, but the X server or Chromium re-enables it automatically within seconds.
+> - `xset dpms force off` puts the monitor into standby, but DOM updates from MagicMirror modules (clock, weather, etc.) wake it up again immediately.
+> - `vcgencmd display_power` no longer works reliably on newer Raspberry Pi OS versions that use the KMS driver (default since 2024).
+>
+> The recommended solution is **`ddcutil`**, which controls the monitor directly over the DDC/CI protocol (I²C) — independent of X, DPMS, or Chromium. The monitor actually powers off (not just standby).
 
-On the server (as the user running MagicMirror):
+### 1. Set up `ddcutil` on the Raspberry Pi
 
 ```bash
-# Generate a key without a passphrase (press Enter twice when prompted)
-ssh-keygen -t ed25519 -C "magicmirror"
+sudo apt install -y ddcutil
 
-# Copy the key to the Raspberry Pi
-ssh-copy-id pi@<raspberry-ip>
+# Load the I²C kernel module and persist it across reboots
+sudo modprobe i2c-dev
+echo "i2c-dev" | sudo tee /etc/modules-load.d/i2c-dev.conf
 
-# Test the connection
-ssh pi@<raspberry-ip> 'echo ok'
+# Optional: allow ddcutil without sudo
+sudo usermod -aG i2c <YOUR-USERNAME>
+```
+
+Log out and back in after adding yourself to the `i2c` group.
+
+Test locally on the Pi:
+
+```bash
+ddcutil setvcp d6 4   # monitor off
+ddcutil setvcp d6 1 && sleep 2 && DISPLAY=:0 xrandr --output HDMI-1 --auto --rotate left   # monitor on
+```
+
+> The `sleep 2` after powering on is necessary — the monitor needs a moment to accept the HDMI signal again. Without it the screen stays black even though the monitor is on.
+
+### 2. Set up passwordless SSH from the server to the Pi
+
+On the **server** (as the user running MagicMirror):
+
+```bash
+# Generate a key without a passphrase
+ssh-keygen -t ed25519 -N "" -f ~/.ssh/id_ed25519
+
+# Copy the key to the Pi
+ssh-copy-id <YOUR-USERNAME>@<PI-IP>
+
+# Test
+ssh <YOUR-USERNAME>@<PI-IP> 'echo "SSH works"'
 ```
 
 > **Important:** The key must have **no passphrase**, otherwise the non-interactive `exec()` call in `node_helper.js` will fail silently.
 
-### 2. Update screenCommandOn / screenCommandOff in config.js
-
-Wrap your existing screen commands in an SSH call:
+### 3. Update screenCommandOn / screenCommandOff in config.js
 
 ```js
-screenCommandOn:  "ssh pi@<raspberry-ip> 'xrandr -display :0.0 --output HDMI-1 --auto --rotate left'",
-screenCommandOff: "ssh pi@<raspberry-ip> 'xrandr -display :0.0 --output HDMI-1 --off'",
+{
+    module: 'MMM-Hue-Motion-Screensaver',
+    position: 'lower_third',
+    config: {
+        hueBridgeID: 'your-hue-bridge-id',
+        sensorId: 'your-sensor-id',
+        apiKey: 'your-api-key',
+        screenCommandOff: "ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 <YOUR-USERNAME>@<PI-IP> 'ddcutil setvcp d6 4'",
+        screenCommandOn:  "ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 <YOUR-USERNAME>@<PI-IP> 'ddcutil setvcp d6 1 && sleep 2 && DISPLAY=:0 xrandr --output HDMI-1 --auto --rotate left'",
+    }
+}
 ```
 
-The `-display :0.0` flag passed directly to `xrandr` ensures the command targets the correct display even when no `DISPLAY` environment variable is set in the SSH session.
+If your monitor is in **landscape orientation**, remove `--rotate left` from `screenCommandOn`.
+
+| SSH flag | Purpose |
+|----------|---------|
+| `-o StrictHostKeyChecking=no` | Suppresses the interactive "Are you sure...?" prompt on first connect |
+| `-o ConnectTimeout=5` | Aborts after 5 seconds if the Pi is unreachable, preventing MagicMirror from hanging |
+
+---
+
+## Raspberry Pi 3 kiosk client setup guide
+
+For a complete guide on setting up a Raspberry Pi 3 as a minimal, stable 24/7 kiosk client (Raspberry Pi OS Lite + X + Chromium, no desktop environment), including:
+
+- Minimal OS install and system tuning
+- GPU memory, swap, and boot configuration
+- Disabling unnecessary services
+- Chromium kiosk script with all relevant flags explained
+- Autostart via `.bash_profile` or systemd service
+- Hardware watchdog + Chromium watchdog cronjob
+- Screen on/off schedule with `ddcutil`
+- Full troubleshooting reference
+
+→ See **[docs/raspi3-kiosk-setup.md](docs/raspi3-kiosk-setup.md)**
 
 ---
 

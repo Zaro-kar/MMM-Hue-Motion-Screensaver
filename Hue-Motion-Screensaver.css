@@ -1,4 +1,5 @@
 .MMM-Hue-Motion-Screensaver {
-    color: rgba(255, 255, 255, 0.4); /* Weiß mit 60% Deckkraft */
-    text-align: right; /* Text zentrieren */
+    color: rgba(255, 255, 255, 0.4); /* Weiß mit 40% Deckkraft */
+    /* Kein text-align: die Ausrichtung kommt aus der MagicMirror-Region
+       (left/center/right), damit das Modul in jeder Position korrekt sitzt. */
 }
